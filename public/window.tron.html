@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>window.tron</title>
+</head>
+<body>
+  <div class="sign">
+    <button id="get-account-info">eth_requestAccounts</button>
+    <div style="border: 1px solid #ddd; padding: 10px">
+      <label for="sign-address">to Address</label>
+      <input id="sign-address" type="text" />
+      <br/>
+      <label for="sign-token">Token</label>
+      <select id="sign-token" name="" id="">
+        <option value="trx">TRX</option>
+      </select>
+      <br/>
+      <label for="sign-amount">Amount</label>
+      <input id="sign-amount" type="text" />
+      <br/>
+      <button id="sign-trade-btn">submit trade</button>
+    </div>
+  </div>
+  <script>
+    const log = console.log.bind(console, '=====window.tron CONSOLE=====');
+
+    window.onload = () => {
+      log(window.tron);
+      window.tron.on('connect', (...args) => {
+        log('tronProviderEvent - connect', ...args);
+      })
+
+      window.tron.on('disconnect', (...args) => {
+        log('tronProviderEvent - disconnect', ...args);
+      })
+
+      window.tron.on('chainChanged', (...args) => {
+        log('tronProviderEvent - chainChanged', ...args);
+      })
+
+      window.tron.on('accountsChanged', (...args) => {
+        log('tronProviderEvent - accountsChanged', ...args);
+      })
+
+      // eth_requestAccounts
+      document.getElementById('get-account-info').addEventListener('click', async () => {
+        try {
+          const res = await tron.request({method: 'eth_requestAccounts'});
+          log('eth_requestAccounts success', res);
+          if (utils.isArray(res) && typeof res[0] === 'string') {
+            log('eth_requestAccounts success');
+          }
+        } catch (error) {
+          log('eth_requestAccounts fail', error);
+        }
+      })
+
+      // sign
+      // Triggering the "sign-trade" button must be able to evoke the signature function of the wallet
+      if (window.tron && window.tron.tronWeb && window.tron.tronWeb.ready) {
+        document.getElementById('sign-trade-btn').addEventListener('click', async () => {
+          log('enter sign-trade-btn');
+          const toAddressInput = document.getElementById('sign-address');
+          const tokenSelect = document.getElementById('sign-token');
+          const amountInput = document.getElementById('sign-amount');
+
+          const toAddress = toAddressInput.value;
+          const amount = amountInput.value;
+
+          transaction = await tron.tronWeb.transactionBuilder.sendTrx(
+            toAddress,
+            amount * 1000000,
+          );
+          signedTransaction = await tron.tronWeb.trx.sign(transaction);
+          res = await tron.tronWeb.trx.sendRawTransaction(signedTransaction);
+        });
+      }
+    }
+
+    // todos multiSign
+  </script>
+</body>
+</html>

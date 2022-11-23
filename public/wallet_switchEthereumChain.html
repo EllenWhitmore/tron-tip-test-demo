@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>wallet_switchEthereumChain</title>
+</head>
+<body>
+  <button id="mainnet">switch to mainnet</button>
+  <button id="shasta">switch to shasta</button>
+  <button id="nile">switch to nile</button>
+
+  <!-- info -->
+  <div id="info" style="margin: 2px;color: red; font-size: 16px;"></div>
+
+  <script>
+    const tronChainNameWithChainId = {
+      mainnet: '0x2b6653dc',
+      shasta: '0x94a9059e',
+      nile: '0xcd8690dc',
+    };
+
+    const infoLog = (text) => {
+      const p = document.createElement('p')
+      p.innerHTML = text;
+      document.getElementById('info').insertBefore(p, document.getElementById('info').firstChild);
+    }
+
+    const log = console.log.bind(console, '=====wallet_switchEthereumChain CONSOLE=====')
+
+    function bindSwitchChainBtn(chainName) {
+      document.getElementById(chainName).addEventListener('click', async () => {
+        infoLog('————————————————————————————————————————————————');
+        try {
+          const res1 = await tron.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: tronChainNameWithChainId[chainName] }]
+          });
+          
+          log(`tron.request ${chainName} return: `, res1);
+          if (res1 === null) {
+            // success
+            infoLog('Switched Success')
+          } else {
+            // fail
+            infoLog(res1.message);
+          }
+        } catch (error) {
+          log(`tron.request ${chainName} error: `, error);
+          infoLog(error.message);
+        }
+      });
+    }
+
+    bindSwitchChainBtn('mainnet');
+    bindSwitchChainBtn('shasta');
+    bindSwitchChainBtn('nile');
+    
+  </script>
+</body>
+</html>

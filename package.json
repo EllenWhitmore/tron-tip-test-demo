@@ -1,0 +1,21 @@
+{
+  "name": "tron-tip-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Aaron",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack serve",
+    "dev2": "webpack serve --config webpack.config.version2.js"
+  },
+  "dependencies": {
+    "eruda": "^2.5.0",
+    "ethers": "^5.7.0",
+    "web3": "^1.7.5",
+    "webpack": "^5.74.0",
+    "webpack-dev-server": "^4.10.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.10.0"
+  }
+}

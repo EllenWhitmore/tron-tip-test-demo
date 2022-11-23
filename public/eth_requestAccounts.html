@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eth_requestAccounts</title>
+  <button id="get-account-info">eth_requestAccounts</button>
+</head>
+<body>
+  <script>
+    const log = console.log.bind(console, '=====eth_requestAccounts CONSOLE=====');
+
+    document.getElementById('get-account-info').addEventListener('click', async () => {
+      try {
+        const res = await tron.request({method: 'eth_requestAccounts'});
+        log('eth_requestAccounts success', res);
+        if (utils.isArray(res) && typeof res[0] === 'string') {
+          log('eth_requestAccounts success');
+        }
+      } catch (error) {
+        log('eth_requestAccounts fail', error);
+      }
+    })
+  </script>
+</body>
+</html>

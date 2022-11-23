@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eth_requestAccounts_and_tron</title>
+  <button id="get-account-info">eth_requestAccounts</button>
+</head>
+<body>
+  <script>
+    const log = console.log.bind(console, '=====eth_requestAccounts_and_tron CONSOLE=====');
+    const error = console.error.bind(console, '=====eth_requestAccounts_and_tron CONSOLE=====');
+
+    const checkDefaultAddress = (tronWeb) => {
+      return (
+        tronWeb
+        && typeof tronWeb.defaultAddress === 'object'
+        && typeof tronWeb.defaultAddress.base58 === 'string'
+        && tronWeb.defaultAddress.base58 !== ''
+      )
+    }
+
+    document.getElementById('get-account-info').addEventListener('click', async () => {
+      try {
+        const res = await tron.request({method: 'eth_requestAccounts'});
+        log('eth_requestAccounts success', res);
+        if (utils.isArray(res) && typeof res[0] === 'string') {
+          log('eth_requestAccounts success');
+
+          // check window.tron.tronWeb
+          if (!window.tron || !window.tron.tronWeb) {
+            error('error: no window.tron.tronWeb');
+          }
+
+          // check window.tron.tronWeb.defaultAddress
+          if (!checkDefaultAddress(window.tron.tronWeb)) {
+            error('error: window.tron.tronWeb.defaultAddress is not available');
+          }
+        }
+      } catch (e) {
+        log('eth_requestAccounts fail', e);
+      }
+    })
+  </script>
+</body>
+</html>
