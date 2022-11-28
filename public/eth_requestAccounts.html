@@ -14,9 +14,8 @@
     document.getElementById('get-account-info').addEventListener('click', async () => {
       try {
         const res = await tron.request({method: 'eth_requestAccounts'});
-        log('eth_requestAccounts success', res);
-        if (utils.isArray(res) && typeof res[0] === 'string') {
-          log('eth_requestAccounts success');
+        if (Array.isArray(res) && typeof res[0] === 'string') {
+          log('eth_requestAccounts success', res);
         }
       } catch (error) {
         log('eth_requestAccounts fail', error);
