@@ -29,23 +29,25 @@
     const log = console.log.bind(console, '=====window.tron CONSOLE=====');
 
     window.onload = () => {
-      log(window.tron);
-      window.tron.on('connect', (...args) => {
-        log('tronProviderEvent - connect', ...args);
-      })
+      setTimeout(() => {
+        log(window.tron);
+        window.tron.on('connect', (...args) => {
+          log('tronProviderEvent - connect', ...args);
+        })
 
-      window.tron.on('disconnect', (...args) => {
-        log('tronProviderEvent - disconnect', ...args);
-      })
+        window.tron.on('disconnect', (...args) => {
+          log('tronProviderEvent - disconnect', ...args);
+        })
 
-      window.tron.on('chainChanged', (...args) => {
-        log('tronProviderEvent - chainChanged', ...args);
-      })
+        window.tron.on('chainChanged', (...args) => {
+          log('tronProviderEvent - chainChanged', ...args);
+        })
 
-      window.tron.on('accountsChanged', (...args) => {
-        log('tronProviderEvent - accountsChanged', ...args);
-      })
-
+        window.tron.on('accountsChanged', (...args) => {
+          log('tronProviderEvent - accountsChanged', ...args);
+        })
+      }, 100);
+      
       // eth_requestAccounts
       document.getElementById('get-account-info').addEventListener('click', async () => {
         try {
