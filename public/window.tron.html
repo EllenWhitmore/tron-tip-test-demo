@@ -38,6 +38,10 @@
       <input id="sign-amount" type="text" />
       <br/>
 
+      <label for="multi-sign-permission-id">multiSign Permission Id</label>
+      <input id="multi-sign-permission-id" type="text" />
+      <br/>
+
       <button id="sign-trade-btn">submit trade</button>
     </div>
   </div>
@@ -80,17 +84,13 @@
             // Triggering the "sign-trade" button must be able to evoke the signature function of the wallet
             document.getElementById('sign-trade-btn').addEventListener('click', async () => {
               log('enter sign-trade-btn');
-              const transferTypeSelect = document.getElementById('transfer-type');
-              const toAddressInput = document.getElementById('sign-address');
-              const amountInput = document.getElementById('sign-amount');
-              const trc10TokenIdInput = document.getElementById('sign-trc10-id');
-              const trc20ContractAddressInput = document.getElementById('sign-trc20-contract-address');
 
-              const transferType = transferTypeSelect.value;
-              const toAddress = toAddressInput.value;
-              const amount = amountInput.value;
-              const trc10TokenId = trc10TokenIdInput.value;
-              const trc20ContractAddress = trc20ContractAddressInput.value;
+              const transferType = document.getElementById('transfer-type').value;
+              const toAddress = document.getElementById('sign-address').value;
+              const amount = document.getElementById('sign-amount').value;
+              const trc10TokenId = document.getElementById('sign-trc10-id').value;
+              const trc20ContractAddress = document.getElementById('sign-trc20-contract-address').value;
+              const multiSignPermissionId = document.getElementById('multi-sign-permission-id').value
 
               switch (transferType) {
                 case 'trx': {
@@ -109,6 +109,42 @@
                 case 'trc20': {
                   contractInstance = await tron.tronWeb.contract().at(trc20ContractAddress);
                   transaction = await contractInstance.transfer(toAddress, amount * Math.pow(10, 12)).send();
+                  break;
+                }
+                case 'multi-sign-trx': {
+                  transaction = await tron.tronWeb.transactionBuilder.sendTrx(
+                    toAddress,
+                    amount * 1000000,
+                    { permissionId: multiSignPermissionId },
+                  );
+                  signedTransaction = await tron.tronWeb.trx.multiSign(
+                    transaction,
+                    undefined,
+                    multiSignPermissionId,
+                  );
+                  log('signedTransaction:', signedTransaction);
+                  break;
+                }
+                case 'multi-sign-trc10': {
+                  transaction = await tron.tronWeb.transactionBuilder.sendToken(
+                    toAddress,
+                    amount * 1000000,
+                    trc10TokenId,
+                    { permissionId: multiSignPermissionId },
+                  );
+                  signedTransaction = await tron.tronWeb.trx.multiSign(
+                    transaction,
+                    undefined,
+                    multiSignPermissionId,
+                  );
+                  log.debug('signedTransaction:', signedTransaction);
+                  break;
+                }
+                case 'multi-sign-trc20': {
+                  contractInstance = await tron.tronWeb.contract().at(trc20ContractAddress);
+                  transaction = await contractInstance
+                    .transfer(trc20ContractAddress, amount * Math.pow(10, 12))
+                    .send();
                   break;
                 }
                 default:
