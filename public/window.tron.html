@@ -9,48 +9,52 @@
 <body>
   <div class="sign" id="sign">
     <button id="get-account-info">eth_requestAccounts</button>
+
+    <div style="border: 1px solid #ddd; padding: 10px;margin-top: 20px;">
+      <label for="transfer-type">transfer type</label>
+      <select id="transfer-type" name="" id="">
+        <option value="trx">trx transfer</option>
+        <option value="trc10">trc10 transfer</option>
+        <option value="trc20">trc20 transfer</option>
+      </select>
+      <br/>
+
+      <label for="sign-address">to Address</label>
+      <input id="sign-address" type="text" />
+      <br/>
+
+      <label for="sign-trc10-id">trc10 token id (only for trc10 transfer)</label>
+      <input id="sign-trc10-id" type="text" />
+      <br/>
+
+      <label for="sign-trc20-contract-address">trc20 token contract address (only for trc20 transfer)</label>
+      <input id="sign-trc20-contract-address" type="text" />
+      <br/>
+
+      <label for="sign-amount">Amount</label>
+      <input id="sign-amount" type="text" />
+      <br/>
+
+      <button id="sign-trade-btn">submit trade</button>
+    </div>
   </div>
   <script>
-    function createTransferElement(prefix) {
-      const dom = `
-        <div style="border: 1px solid #ddd; padding: 10px;margin-top: 20px;">
-          <p style="margin: 5px 0;">test tron.tronWeb sign ${prefix} transfer</p>
-          <label for="${prefix}-sign-address">to Address</label>
-          <input id="${prefix}-sign-address" type="text" />
-          <br/>
-          <label for="${prefix}-sign-token">Token</label>
-          <select id="${prefix}-sign-token" name="" id="">
-            <option value="${prefix}">${prefix}</option>
-          </select>
-          <br/>
-          ${(() => {
-            if (prefix === 'trc10') {
-              return `
-                <label for="${prefix}-sign-trc10-id">trc10 token id</label>
-                <input id="${prefix}-sign-trc10-id" type="text" />
-                <br/>
-              `
-            }
-          })()}
-          <label for="${prefix}-sign-amount">Amount</label>
-          <input id="${prefix}-sign-amount" type="text" />
-          <br/>
-          <button id="${prefix}-sign-trade-btn">submit ${prefix} trade</button>
-        </div>
-      `;
-      document.getElementById('sign').innerHTML += dom;
-    }
-  </script>
-  <script>
     const log = console.log.bind(console, '=====window.tron CONSOLE=====');
-    createTransferElement('trx');
-    createTransferElement('trc10');
-    createTransferElement('trc20');
 
     window.onload = () => {
-      // todos should not listener like this
-      setTimeout(() => {
-        log(window.tron);
+      let isGotTron = false;
+      let getTronTimes = 0;
+      setInterval(() => {
+        if (isGotTron || getTronTimes > 20) {
+          return;
+        }
+        getTronTimes += 1;
+        log(window.tron, getTronTimes);
+        if (!window.tron) {
+          return;
+        }
+
+        isGotTron = true;
         window.tron.on('connect', (...args) => {
           log('tronProviderEvent - connect', ...args);
         })
@@ -66,7 +70,52 @@
         window.tron.on('accountsChanged', (...args) => {
           log('tronProviderEvent - accountsChanged', ...args);
         })
-      }, 1000);
+
+        window.tron.on('connect', (...args) => {
+          if (window.tron && window.tron.tronWeb && window.tron.tronWeb.ready) {
+            // trx sign
+            // Triggering the "sign-trade" button must be able to evoke the signature function of the wallet
+            document.getElementById('sign-trade-btn').addEventListener('click', async () => {
+              log('enter sign-trade-btn');
+              const transferTypeSelect = document.getElementById('transfer-type');
+              const toAddressInput = document.getElementById('sign-address');
+              const amountInput = document.getElementById('sign-amount');
+              const trc10TokenIdInput = document.getElementById('sign-trc10-id');
+              const trc20ContractAddressInput = document.getElementById('sign-trc20-contract-address');
+
+              const transferType = transferTypeSelect.value;
+              const toAddress = toAddressInput.value;
+              const amount = amountInput.value;
+              const trc10TokenId = trc10TokenIdInput.value;
+              const trc20ContractAddress = trc20ContractAddressInput.value;
+
+              switch (transferType) {
+                case 'trx': {
+                  transaction = await tron.tronWeb.transactionBuilder.sendTrx(
+                    toAddress,
+                    amount * 1000000,
+                  );
+                  signedTransaction = await tron.tronWeb.trx.sign(transaction);
+                  res = await tron.tronWeb.trx.sendRawTransaction(signedTransaction);
+                  break;
+                }
+                case 'trc10': {
+                  tron.tronWeb.trx.sendToken(toAddress, amount * 1000000, trc10TokenId);
+                  break;
+                }
+                case 'trc20': {
+                  contractInstance = await tron.tronWeb.contract().at(trc20ContractAddress);
+                  transaction = await contractInstance.transfer(toAddress, amount * Math.pow(10, 12)).send();
+                  break;
+                }
+                default:
+                break;
+              }
+              
+            });
+          }
+        })
+      }, 500);
       
       // eth_requestAccounts
       document.getElementById('get-account-info').addEventListener('click', async () => {
@@ -81,59 +130,6 @@
         }
       })
 
-      window.tron.on('connect', (...args) => {
-        if (window.tron && window.tron.tronWeb && window.tron.tronWeb.ready) {
-          // trx sign
-          // Triggering the "sign-trade" button must be able to evoke the signature function of the wallet
-          document.getElementById('trx-sign-trade-btn').addEventListener('click', async () => {
-            log('enter trx-sign-trade-btn');
-            const toAddressInput = document.getElementById('trx-sign-address');
-            const tokenSelect = document.getElementById('trx-sign-token');
-            const amountInput = document.getElementById('trx-sign-amount');
-
-            const toAddress = toAddressInput.value;
-            const amount = amountInput.value;
-
-            transaction = await tron.tronWeb.transactionBuilder.sendTrx(
-              toAddress,
-              amount * 1000000,
-            );
-            signedTransaction = await tron.tronWeb.trx.sign(transaction);
-            res = await tron.tronWeb.trx.sendRawTransaction(signedTransaction);
-          });
-
-          // trc10 sign
-          // Triggering the "sign-trade" button must be able to evoke the signature function of the wallet
-          document.getElementById('trc10-sign-trade-btn').addEventListener('click', async () => {
-            log('enter trc10-sign-trade-btn', 'contract address: TXKgW7Ai5KkSKr7Jfxn4AZRpB3BZusHJLj');
-            const toAddressInput = document.getElementById('trc10-sign-address');
-            const trc10id = document.getElementById('trc10-sign-trc10-id');
-            const tokenSelect = document.getElementById('trc10-sign-token');
-            const amountInput = document.getElementById('trc10-sign-amount');
-
-            const toAddress = toAddressInput.value;
-            const amount = amountInput.value;
-            const trc10idValue = trc10id.value;
-
-            tron.tronWeb.trx.sendToken(toAddress, amount * 1000000, trc10idValue);
-          });
-
-          // trc20 sign
-          // Triggering the "sign-trade" button must be able to evoke the signature function of the wallet
-          document.getElementById('trc20-sign-trade-btn').addEventListener('click', async () => {
-            log('enter trc20-sign-trade-btn', 'contract address: TXKgW7Ai5KkSKr7Jfxn4AZRpB3BZusHJLj');
-            const toAddressInput = document.getElementById('trc20-sign-address');
-            const tokenSelect = document.getElementById('trc20-sign-token');
-            const amountInput = document.getElementById('trc20-sign-amount');
-
-            const toAddress = toAddressInput.value;
-            const amount = amountInput.value;
-
-            contractInstance = await tron.tronWeb.contract().at('TXKgW7Ai5KkSKr7Jfxn4AZRpB3BZusHJLj');
-            transaction = await contractInstance.transfer(toAddress, amount * Math.pow(10, 12)).send();
-          });
-        }
-      })
       
     }
 
