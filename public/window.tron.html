@@ -16,6 +16,9 @@
         <option value="trx">trx transfer</option>
         <option value="trc10">trc10 transfer</option>
         <option value="trc20">trc20 transfer</option>
+        <option value="multi-sign-trx">multiSign trx transfer</option>
+        <option value="multi-sign-trc10">multiSign trc10 transfer</option>
+        <option value="multi-sign-trc20">multiSign trc20 transfer</option>
       </select>
       <br/>
 
@@ -113,17 +116,18 @@
               }
               
             });
+          } else {
+            log('window.tron is not ready', window.tron, window.tron.tronWeb, window.tron.tronWeb.ready);
           }
         })
-      }, 500);
+      }, 50);
       
       // eth_requestAccounts
       document.getElementById('get-account-info').addEventListener('click', async () => {
         try {
           const res = await tron.request({method: 'eth_requestAccounts'});
-          log('eth_requestAccounts success', res);
-          if (utils.isArray(res) && typeof res[0] === 'string') {
-            log('eth_requestAccounts success');
+          if (Array.isArray(res) && typeof res[0] === 'string') {
+            log('eth_requestAccounts success', res);
           }
         } catch (error) {
           log('eth_requestAccounts fail', error);
