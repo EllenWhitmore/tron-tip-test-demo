@@ -43,9 +43,21 @@
       <br/>
 
       <button id="sign-trade-btn">submit trade</button>
+      <button id="show-multi-signature-data">Show multi-signature data</button>
+      <button id="use-local-multi-sign-data">Use local multi-sign data</button>
+
+      <p>multiSignedString</p>
+      <p id="multi-sign-string"></p>
     </div>
   </div>
   <script>
+    function updateMultiSignStringText(str) {
+      const multiSignStringDom = document.getElementById('multi-sign-string');
+      multiSignStringDom.innerHTML = str;
+    }
+  </script>
+  <script>
+    // todos Math.pow(10, 12);
     const log = console.log.bind(console, '=====window.tron CONSOLE=====');
 
     window.onload = () => {
@@ -85,12 +97,13 @@
             document.getElementById('sign-trade-btn').addEventListener('click', async () => {
               log('enter sign-trade-btn');
 
+
               const transferType = document.getElementById('transfer-type').value;
               const toAddress = document.getElementById('sign-address').value;
               const amount = document.getElementById('sign-amount').value;
               const trc10TokenId = document.getElementById('sign-trc10-id').value;
               const trc20ContractAddress = document.getElementById('sign-trc20-contract-address').value;
-              const multiSignPermissionId = document.getElementById('multi-sign-permission-id').value
+              const multiSignPermissionId = Number(document.getElementById('multi-sign-permission-id').value);
 
               switch (transferType) {
                 case 'trx': {
@@ -112,17 +125,24 @@
                   break;
                 }
                 case 'multi-sign-trx': {
-                  transaction = await tron.tronWeb.transactionBuilder.sendTrx(
-                    toAddress,
-                    amount * 1000000,
-                    { permissionId: multiSignPermissionId },
-                  );
-                  signedTransaction = await tron.tronWeb.trx.multiSign(
-                    transaction,
-                    undefined,
-                    multiSignPermissionId,
-                  );
-                  log('signedTransaction:', signedTransaction);
+                  try {
+                    transaction = await tron.tronWeb.transactionBuilder.sendTrx(
+                      toAddress,
+                      amount * 1000000,
+                      { permissionId: multiSignPermissionId },
+                    );
+                    log('transaction:', transaction);
+                    signedTransaction = await tron.tronWeb.trx.multiSign(
+                      transaction,
+                      undefined,
+                      multiSignPermissionId,
+                    );
+                    log('signedTransaction:', signedTransaction);
+                    await localStorage.setItem('multiSignString', JSON.stringify(signedTransaction));
+                    updateMultiSignStringText(JSON.stringify(signedTransaction));
+                  } catch (error) {
+                    log('multi-sign-trx error', error);
+                  }
                   break;
                 }
                 case 'multi-sign-trc10': {
@@ -137,14 +157,35 @@
                     undefined,
                     multiSignPermissionId,
                   );
-                  log.debug('signedTransaction:', signedTransaction);
+                  await localStorage.setItem('multiSignString', JSON.stringify(signedTransaction));
+                  updateMultiSignStringText(JSON.stringify(signedTransaction));
                   break;
                 }
                 case 'multi-sign-trc20': {
-                  contractInstance = await tron.tronWeb.contract().at(trc20ContractAddress);
-                  transaction = await contractInstance
-                    .transfer(trc20ContractAddress, amount * Math.pow(10, 12))
-                    .send();
+                  const parameter = [
+                    { type: 'address', value: toAddress },
+                    { type: 'uint256', value: amount * 1000000 },
+                  ];
+                  const options = { permissionId: multiSignPermissionId };
+                  // account 1
+                  let transaction = await tron.tronWeb.transactionBuilder.triggerSmartContract(
+                    // '416d379e56de8bb65b925c838647fb0e2924bcd38e',
+                    trc20ContractAddress,
+                    'transfer(address,uint256)',
+                    options,
+                    parameter,
+                    // 'TAHQdDiZajMMP26STUnfsiRMNyXdxAJakZ',
+                    tron.tronWeb.defaultAddress.base58,
+                  );
+                  transaction = transaction.transaction;
+                  signedTransaction = await tron.tronWeb.trx.multiSign(
+                    transaction,
+                    undefined,
+                    multiSignPermissionId,
+                  );
+
+                  await localStorage.setItem('multiSignString', JSON.stringify(signedTransaction));
+                  updateMultiSignStringText(JSON.stringify(signedTransaction));
                   break;
                 }
                 default:
@@ -152,6 +193,26 @@
               }
               
             });
+
+            document.getElementById('show-multi-signature-data').addEventListener('click', async () => {
+              const signedTransaction = JSON.parse(await localStorage.getItem('multiSignString'));
+              updateMultiSignStringText(JSON.stringify(signedTransaction));
+            })
+
+            document.getElementById('use-local-multi-sign-data').addEventListener('click', async () => {
+              const multiSignPermissionId = Number(document.getElementById('multi-sign-permission-id').value);
+              log('multiSignPermissionId:', multiSignPermissionId);
+              const signedTransaction = JSON.parse(await localStorage.getItem('multiSignString'));
+              log('signedTransaction:', signedTransaction);
+              const signedTransaction2 = await tron.tronWeb.trx.multiSign(
+                signedTransaction,
+                undefined,
+                multiSignPermissionId,
+              );
+              log('signedTransaction2:', signedTransaction2);
+              res = await tron.tronWeb.trx.sendRawTransaction(signedTransaction2);
+              log('multiSign res:', res);
+            })
           } else {
             log('window.tron is not ready', window.tron, window.tron.tronWeb, window.tron.tronWeb.ready);
           }
