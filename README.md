@@ -4,11 +4,11 @@
 3. open `http://localhost:9001/` to run demo
 
 ### others
-if you want to change test code, open `/public`
-test TIP-1193: `public/window.tron.html`
-test TIP-1102: `public/eth_requestAccounts.html`
-test TIP-3326: `public/wallet_switchEthereumChain.html`
-test signature and multi-signature: `public/window.tron.html`
+if you want to change test code, open `/public`  
+test TIP-1193: `public/window.tron.html`  
+test TIP-1102: `public/eth_requestAccounts.html`  
+test TIP-3326: `public/wallet_switchEthereumChain.html`  
+test signature and multi-signature: `public/window.tron.html`  
 ### notice
 If you have any questions, please send me an issue
 
