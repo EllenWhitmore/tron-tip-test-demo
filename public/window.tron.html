@@ -149,6 +149,7 @@
                   transaction = await tron.tronWeb.transactionBuilder.sendTrx(
                     toAddress,
                     amount * 1000000,
+                    tron?.tronWeb?.defaultAddress?.base58,
                     { permissionId: multiSignPermissionId },
                   );
                   log('transaction:', transaction);
