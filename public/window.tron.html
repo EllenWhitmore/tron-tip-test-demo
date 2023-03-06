@@ -171,6 +171,7 @@
                   toAddress,
                   amount * 1000000,
                   trc10TokenId,
+                  tron?.tronWeb?.defaultAddress?.base58,
                   { permissionId: multiSignPermissionId },
                 );
                 signedTransaction = await tron.tronWeb.trx.multiSign(
