@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "webpack serve",
-    "dev2": "webpack serve --config webpack.config.version2.js"
+    "dev2": "webpack serve --config webpack.config.version2.js",
+    "dev3": "webpack serve --config webpack.config.version3.js"
   },
   "dependencies": {
     "eruda": "^2.5.0",

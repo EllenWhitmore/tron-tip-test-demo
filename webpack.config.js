@@ -14,6 +14,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'public'),
     },
+    // host: '10.10.15.8',
     host: 'localhost',
     compress: true,
     port: 9001
